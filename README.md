@@ -17,7 +17,7 @@ This project aims to build a fully automated trading system using Python, incorp
 Clone the repository:
 
 ```bash
-git clone https://github.com/your_username/automated-trading-system.git
+git clone https://github.com/UPCienciaDeDatos/day_trading_software
 ```
 
 ## Install the required dependencies
@@ -49,4 +49,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgements
 
 > [Postmodern Portfolio Theory](https://www.investopedia.com/terms/p/pmpt.asp)
+
 > [StatQuest](https://www.youtube.com/@statquest)'s multiple videos on RNN, specially the [Long Short-Term Memory (LSTM), Clearly Explained](https://www.youtube.com/watch?v=YCzL96nL7j0&ab_channel=StatQuestwithJoshStarmer)

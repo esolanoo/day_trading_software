@@ -1,0 +1,10 @@
+datetime
+numpy
+pandas
+yfinance
+tqdm
+warnings
+matplotlib
+seaborn
+keras
+tensorflow
