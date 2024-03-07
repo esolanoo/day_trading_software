@@ -1,0 +1,5 @@
+stocks = ['AMD', 'BYDDY', 'ZI', 'PFE', 'NU', 'WMT', 'F', 'GOOGL', 'Z', 'NVDA', 'MRNA']
+efts = ['SPY', 'TQQQ', 'IVV', 'VOO', 'VTI', 'QQQ', 'VTV', 'BND', 'IWF', 'XLK', 'GLD', 'SCHD']
+coins = ['EURUSD=X', 'JPY=X', 'MXN=X']
+crypto = ['SOL-USD']
+futures = ['ZB=F', 'HG=F', 'ZC=F', 'ZM=F']
