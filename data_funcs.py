@@ -6,61 +6,6 @@ import yfinance as yf
 from tqdm import tqdm
 
 
-def calc_atr(df, period=14):
-    """
-    Calculate the Average True Range (ATR)
-    """
-    high_low = df['High'] - df['Low']
-    high_close = df['High'] - df['Close'].shift(1)
-    low_close = df['Low'] - df['Close'].shift(1)
-    
-    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1, skipna=False)
-    atr = true_range.ewm(com=period, min_periods=period).mean()
-    return atr
-
-
-def calc_rsi(df, period=14):
-    """
-    Calculate the Relative Strength Index (RSI)
-        Values above .7 indicate the asset is in overbought territory
-        Values below .3 indicate the asset is in oversold territory
-    """
-    delta = df['Close'].diff()
-    up, down = delta.copy(), delta.copy()
-    up[up < 0] = 0
-    down[down > 0] = 0
-
-    average_gain = up.rolling(window=period).mean()
-    average_loss = abs(down.rolling(window=period).mean())
-
-    rs = average_gain / average_loss
-    rsi = (100 - (100 / (1 + rs)))/100
-    
-    return rsi
-
-
-def calc_adx(df, period=14):
-    """
-    Calculate the Average Directional Index (ADX)
-        [0-25): Weak trend
-        [25-50): Strong trend
-        [50-75): Very strong trend
-        [75-100]: Extremely strong trend
-    """
-    H = df['High'] - df['High'].shift(1)
-    L = df['Low'].shift(1) - df['Low']
-    
-    pdm = np.where((H > L) & (H > 0), H, 0)
-    ndm = np.where((H < L) & (L > 0), L, 0)
-    
-    pdi = (pdm/df['atr']).ewm(com=period, min_periods=period).mean()
-    ndi = (ndm/df['atr']).ewm(com=period, min_periods=period).mean()
-
-    adx = (abs(pdi-ndi) / (pdi+ndi)).ewm(com=period, min_periods=period).mean()
-
-    return adx
-
-
 def historical(ticker):
     now = datetime.now()
     start = now - timedelta(days=58)
@@ -74,15 +19,14 @@ def historical(ticker):
     stock_hist.set_index('Datetime', inplace=True)
     stock_hist = pd.concat([stock_hist, df], axis=1)
     stock_hist['returns'] = stock_hist['Adj Close'].pct_change()
-    stock_hist['atr'] = calc_atr(stock_hist)
-    stock_hist['rsi'] = calc_rsi(stock_hist)
-    stock_hist['adx'] = calc_adx(stock_hist)
     stock_hist['s'] = stock_hist.index.map(pd.Timestamp.timestamp)
     stock_hist['day sin'] = np.sin(stock_hist['s']*(2*np.pi / 60/60/24))
     stock_hist.ffill(inplace=True)
     stock_hist.dropna(inplace=True)
     stock_hist.reset_index(inplace=True)
-    stock_hist.drop(['s', 'Datetime'], axis=1, inplace=True)
+    stock_hist.drop(['s', 'Datetime', 'Dividends', 'Stock Splits'], axis=1, inplace=True)
+    if 'Capital Gains' in stock_hist.columns:
+        stock_hist.drop('Capital Gains', axis=1, inplace=True)
     
     return stock_hist.to_dict()
 
@@ -117,3 +61,55 @@ def get_data():
     pbar.close()
     
     return portfolio, portfolio_hist 
+
+
+def preprocess(DF, window=6):
+    df = DF.copy()
+    targets = df.loc[:, ['High', 'Low', 'Close', 'Adj Close']].to_numpy()
+    df = df.to_numpy()
+    X = []
+    Y = []
+
+    for i in range(len(df)-window):
+        r = [x for x in df[i:i+window]]
+        X.append(r)
+        Y.append(targets[i+window])
+
+    X = np.array(X)
+    Y = np.array(Y)
+    
+    idx = 7*int(X.shape[0]/10)
+    idx2 = 9*int(X.shape[0]/10)
+    X_train = X[:idx, :, :]
+    Y_train = Y[:idx, :]
+    X_test =  X[idx:idx2, :, :]
+    Y_test =  Y[idx:idx2, :]
+    X_val =  X[idx2:, :, :]
+    Y_val =  Y[idx2:, :]
+    
+    x_means = [np.mean(X_train[:, :, i]) for i in range(X_train.shape[2])]
+    x_stds = np.array([np.std(X_train[:, :, i]) for i in range(X_train.shape[2])])
+    x_stds = np.where(x_stds == 0, 1, x_stds)
+
+    X_train_p = (X_train-x_means)/x_stds
+    X_test_p = (X_test-x_means)/x_stds
+    X_val_p = (X_val-x_means)/x_stds
+        
+    y_means = [np.mean(Y_train[:, i]) for i in range(Y_train.shape[1])]
+    y_stds = [np.std(Y_train[:, i]) for i in range(Y_train.shape[1])]
+
+    Y_train_p = (Y_train-y_means)/y_stds
+    Y_test_p = (Y_test-y_means)/y_stds
+    Y_val_p = (Y_val-y_means)/y_stds
+    
+    return [X_train_p, X_test_p, X_val_p, x_means, x_stds], [Y_train_p, Y_test_p, Y_val_p, y_means, y_stds]
+
+
+def ML_data(portfolio):
+    X, Y = {}, {}
+
+    for eq in portfolio_dict:
+        for tckr in portfolio_dict[eq]:
+            X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr])
+    
+    return X, Y
