@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import random
 
 import numpy as np
 import pandas as pd
@@ -6,10 +7,14 @@ import yfinance as yf
 from tqdm import tqdm
 
 
+def random_day():
+    random_day =  datetime.now() - timedelta(days=random.randint(0, 55))
+    return random_day
+    
+
 def historical(ticker):
     now = datetime.now()
     start = now - timedelta(days=58)
-
     stock = ticker
 
     df = yf.download(stock, end=now.strftime('%Y-%m-%d'), start=start.strftime('%Y-%m-%d'), interval='5m', progress=False)['Adj Close']
@@ -105,7 +110,7 @@ def preprocess(DF, window=6):
     return [X_train_p, X_test_p, X_val_p, x_means, x_stds], [Y_train_p, Y_test_p, Y_val_p, y_means, y_stds]
 
 
-def ML_data(portfolio):
+def ML_data(portfolio, portfolio_dict):
     X, Y = {}, {}
 
     for eq in portfolio_dict:
