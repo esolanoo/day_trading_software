@@ -1,14 +1,15 @@
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import *
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.losses import MeanSquaredError
-from tensorflow.keras.metrics import RootMeanSquaredError
-from tensorflow.keras.optimizers import Adam
+from keras import Sequential
+from keras.layers import InputLayer, LSTM, Dense
+from keras.callbacks import ModelCheckpoint
+from keras.losses import MeanSquaredError
+from keras.metrics import RootMeanSquaredError
+from keras.optimizers import Adam
+from keras.models import load_model
 from tqdm import tqdm
-from pathlib import Path
+import os
 
 import warnings
 
@@ -16,28 +17,44 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def Create_Models(portfolio_dict):
-    models, checkpoints = {}, {}
+def Single_Model():
+    model = Sequential([
+        InputLayer((6, 8)),
+        LSTM(64),
+        Dense(8, 'relu'),
+        Dense(4, 'linear')
+    ])
+    return model
 
+
+def Create_Models(portfolio_dict, learning_rate=0.001):
+    models, checkpoints = {}, {}
     for eq in portfolio_dict:
-        for tckr in portfolio_dict[eq]: 
-            models[tckr] = Sequential()
-            models[tckr].add(InputLayer((6, 8)))
-            models[tckr].add(LSTM(64))
-            models[tckr].add(Dense(8, 'relu'))
-            models[tckr].add(Dense(4, 'linear'))
-            checkpoints[tckr] = ModelCheckpoint('{}/'.format(tckr), save_best_only=True)
-    
+        for tckr in portfolio_dict[eq]:               
+            models[tckr] = Single_Model()
+            checkpoints[tckr] = ModelCheckpoint("{}/cpt.weights.h5".format(tckr), save_weights_only=True, verbose=0)
+            models[tckr].compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=learning_rate), metrics=[RootMeanSquaredError()])
     return models, checkpoints
 
-def Train_Models(portfolio_dict, X, Y, models, checkpoints, epochs=10, learning_rate=0.0001):
+
+def PopulateModels(portfolio_dict, learning_rate=0.0001):
+    models = {}
     pbar = tqdm(total=sum([len(x) for x in portfolio_dict.values()]))
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
-            models[tckr].compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=learning_rate), 
-                                 metrics=[RootMeanSquaredError()])
-            models[tckr].fit(X[tckr][0], Y[tckr][0], validation_data=(X[tckr][1], Y[tckr][1]), 
-                             epochs=epochs, callbacks=[checkpoints[tckr]])
+            models[tckr] = Single_Model(learning_rate=learning_rate)
+            models[tckr].load_weights("{}/cpt.weights.h5".format(tckr))
+            pbar.update(1)
+    pbar.close()
+            
+    return models
+
+
+def Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=10):
+    pbar = tqdm(total=sum([len(x) for x in portfolio_dict.values()]))
+    for eq in portfolio_dict:
+        for tckr in portfolio_dict[eq]:
+            models[tckr].fit(X[tckr][0], Y[tckr][0], validation_data=(X[tckr][1], Y[tckr][1]), epochs=epochs, callbacks=[checkpoints[tckr]])
             pbar.update(1)
     pbar.close()
 
@@ -62,16 +79,5 @@ def Predictions(X, Y, models):
     return preds
 
 
-def PopulateModels(portfolio_dict):
-    models = {}
-    pbar = tqdm(total=sum([len(x) for x in portfolio_dict.values()]))
-    for eq in portfolio_dict:
-        for tckr in portfolio_dict[eq]:
-            str_path = 'D:\Documentos\ECID\ProyectoTerminal\DayTradingSoftware\day_trading_software\{}\saved_model.pb'.format(tckr)
-            path = Path(str_path)
-            models[tckr] = tf.keras.models.load_model(path)
-            pbar.update(1)
-    pbar.close()
-            
-    return models
+
 
