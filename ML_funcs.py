@@ -22,6 +22,7 @@ warnings.filterwarnings('ignore')
 def Single_Model():
     model = Sequential([
         InputLayer((20, 8)),     # Modify if window changed
+        LSTM(64, activation='tanh', return_sequences=True),
         LSTM(64),
         Dense(8, 'relu'),
         Dense(4, 'linear')
