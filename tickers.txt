@@ -1,4 +1,4 @@
-stocks = ['AMD', 'ZI', 'PFE', 'NU', 'F', 'GOOGL', 'Z', 'MRNA', 'APPL', 'NKE', 'BAC', 'T', 'XOM', 'CX']
-efts = ['SPY', 'TQQQ', 'QQQ', 'BND', 'IWF', 'XLK', 'SMH', 'IEF', 'BIV'. 'IOO', 'VIOO']
-crypto = ['BTC-USD', 'ETH-USD]
+stocks = ['AMD', 'ZI', 'PFE', 'NU', 'F', 'GOOGL', 'Z', 'MRNA', 'AAPL', 'NKE', 'T', 'CX']
+efts = ['SPY', 'TQQQ', 'QQQ', 'BND', 'IWF', 'XLK', 'IEF', 'BIV', 'IOO', 'VIOO']
+crypto = ['BTC-USD', 'ETH-USD']
 futures = ['ZB=F', 'HG=F', 'ZC=F', 'ZM=F', 'GC=F', 'SB=F']
