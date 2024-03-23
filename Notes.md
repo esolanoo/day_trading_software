@@ -9,3 +9,7 @@ ML to sell or hold -> backtesting to buy/adjust volume
     Save instructions for next batch
 
 Predict adj close, close, high, low
+
+
+Vanguard no era predecible
+Las monedas no funcionan

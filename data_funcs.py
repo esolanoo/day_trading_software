@@ -94,14 +94,13 @@ def preprocess(DF, window=6):
     
     x_means = [np.mean(X_train[:, :, i]) for i in range(X_train.shape[2])]
     x_stds = np.array([np.std(X_train[:, :, i]) for i in range(X_train.shape[2])])
-    x_stds = np.where(x_stds == 0, 1, x_stds)
 
     X_train_p = (X_train-x_means)/x_stds
     X_test_p = (X_test-x_means)/x_stds
     X_val_p = (X_val-x_means)/x_stds
         
-    y_means = [np.mean(Y_train[:, i]) for i in range(Y_train.shape[1])]
-    y_stds = [np.std(Y_train[:, i]) for i in range(Y_train.shape[1])]
+    y_means = x_means[:4]
+    y_stds = x_stds[:4]
 
     Y_train_p = (Y_train-y_means)/y_stds
     Y_test_p = (Y_test-y_means)/y_stds
@@ -115,6 +114,6 @@ def ML_data(portfolio, portfolio_dict):
 
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
-            X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr])
+            X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr], window=20)
     
     return X, Y

@@ -10,4 +10,3 @@ keras
 tensorflow
 pyyaml 
 h5py
-tensorflow

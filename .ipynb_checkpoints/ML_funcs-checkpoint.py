@@ -13,15 +13,13 @@ import os
 
 import warnings
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 
 warnings.filterwarnings('ignore')
 
 
 def Single_Model():
     model = Sequential([
-        InputLayer((20, 8)),     # Modify if window changed
+        InputLayer((6, 8)),
         LSTM(64),
         Dense(8, 'relu'),
         Dense(4, 'linear')
@@ -39,7 +37,7 @@ def Create_Models(portfolio_dict, learning_rate=0.001):
     return models, checkpoints
 
 
-def PopulateModels(portfolio_dict):
+def PopulateModels(portfolio_dict, learning_rate=0.0001):
     models = {}
     pbar = tqdm(total=sum([len(x) for x in portfolio_dict.values()]))
     for eq in portfolio_dict:
@@ -56,31 +54,14 @@ def Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=10):
     pbar = tqdm(total=sum([len(x) for x in portfolio_dict.values()]))
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
-            print(tckr)
             models[tckr].fit(X[tckr][0], Y[tckr][0], validation_data=(X[tckr][1], Y[tckr][1]), epochs=epochs, callbacks=[checkpoints[tckr]])
             pbar.update(1)
-            print()
     pbar.close()
 
 
 def Predictions(X, Y, models):
-    preds_test, preds_validation = {}, {}
+    preds = {}
     for tckr in list(X.keys()):
-        y = models[tckr].predict(X[tckr][1]) # Test data
-        y_p = y*Y[tckr][4]+Y[tckr][3]
-        y_real = Y[tckr][1]*Y[tckr][4]+Y[tckr][3]
-        data = {
-            'Actual High': y_real[:, 0],
-            'Predicted High': y_p[:, 0],
-            'Actual Low': y_real[:, 1],
-            'Predicted Low': y_p[:, 1],
-            'Actual Close': y_real[:, 2],
-            'Predicted Close': y_p[:, 2],
-            'Actual Adj Close': y_real[:, 3],
-            'Predicted Adj Close': y_p[:, 3]
-        }
-        preds_test[tckr] = pd.DataFrame(data=data)
-        
         y = models[tckr].predict(X[tckr][2]) # Validation data
         y_p = y*Y[tckr][4]+Y[tckr][3]
         y_real = Y[tckr][2]*Y[tckr][4]+Y[tckr][3]
@@ -94,8 +75,8 @@ def Predictions(X, Y, models):
             'Actual Adj Close': y_real[:, 3],
             'Predicted Adj Close': y_p[:, 3]
         }
-        preds_validation[tckr] = pd.DataFrame(data=data)
-    return preds_test, preds_validation
+        preds[tckr] = pd.DataFrame(data=data)
+    return preds
 
 
 
