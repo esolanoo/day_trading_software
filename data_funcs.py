@@ -68,10 +68,10 @@ def get_data():
     return portfolio, portfolio_hist 
 
 
-def preprocess(DF, window=6):
+def preprocess(DF, window):
     df = DF.copy()
     targets = df.loc[:, ['High', 'Low', 'Close', 'Adj Close']].to_numpy()
-    df = df.to_numpy()
+    df = df.apply(lambda x: (x - x.min()) / (x.max() - x.min())).to_numpy()
     X = []
     Y = []
 
@@ -83,37 +83,22 @@ def preprocess(DF, window=6):
     X = np.array(X)
     Y = np.array(Y)
     
-    idx = 7*int(X.shape[0]/10)
-    idx2 = 9*int(X.shape[0]/10)
+    idx = 8*int(X.shape[0]/10)
     X_train = X[:idx, :, :]
     Y_train = Y[:idx, :]
-    X_test =  X[idx:idx2, :, :]
-    Y_test =  Y[idx:idx2, :]
-    X_val =  X[idx2:, :, :]
-    Y_val =  Y[idx2:, :]
+    X_test =  X[idx:, :, :]
+    Y_test =  Y[idx:, :]
+
+    X_pred =  np.array([x for x in df[len(df)-window:]])
     
-    x_means = [np.mean(X_train[:, :, i]) for i in range(X_train.shape[2])]
-    x_stds = np.array([np.std(X_train[:, :, i]) for i in range(X_train.shape[2])])
-
-    X_train_p = (X_train-x_means)/x_stds
-    X_test_p = (X_test-x_means)/x_stds
-    X_val_p = (X_val-x_means)/x_stds
-        
-    y_means = x_means[:4]
-    y_stds = x_stds[:4]
-
-    Y_train_p = (Y_train-y_means)/y_stds
-    Y_test_p = (Y_test-y_means)/y_stds
-    Y_val_p = (Y_val-y_means)/y_stds
-    
-    return [X_train_p, X_test_p, X_val_p, x_means, x_stds], [Y_train_p, Y_test_p, Y_val_p, y_means, y_stds]
+    return [X_train, X_test, X, X_pred], [Y_train, Y_test, Y]
 
 
-def ML_data(portfolio, portfolio_dict):
+def ML_data(portfolio, portfolio_dict, window):
     X, Y = {}, {}
 
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
-            X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr], window=20)
+            X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr], window=window)
     
     return X, Y
