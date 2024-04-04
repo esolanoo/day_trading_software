@@ -12,7 +12,7 @@ learning_rate = 0.0005
 
 
 portfolio_dict, portfolio = get_data()
-X, Y = ML_data(portfolio, portfolio_dict, window)
+X, Y = ML_data(portfolio, portfolio_dict, window) 
 models, checkpoints = PopulateModels(portfolio_dict, window, learning_rate)
 predictions_all, next_prediction, joint = Predictions(X, Y, models, window)
 
