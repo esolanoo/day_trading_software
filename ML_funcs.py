@@ -3,13 +3,10 @@ import pandas as pd
 import numpy as np
 from keras import Sequential
 from keras.layers import InputLayer, LSTM, Dense
-from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-from keras.losses import MeanSquaredError
-from keras.metrics import RootMeanSquaredError
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.losses import MeanAbsolutePercentageError
 from keras.optimizers import Adam
-from keras.models import load_model
 import tensorflow as tf
-from functools import partial
 from tqdm import tqdm
 import os
 
@@ -38,7 +35,7 @@ def Create_Models(portfolio_dict, window, learning_rate):
         for tckr in portfolio_dict[eq]:               
             models[tckr] = Single_Model(window=window)
             checkpoints[tckr] = ModelCheckpoint("{}/cpt.weights.h5".format(tckr), save_weights_only=True, verbose=0)
-            models[tckr].compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=learning_rate), metrics=[RootMeanSquaredError()])
+            models[tckr].compile(loss=MeanAbsolutePercentageError(), optimizer=Adam(learning_rate=learning_rate))
     return models, checkpoints
 
 
@@ -50,7 +47,7 @@ def PopulateModels(portfolio_dict, window, learning_rate):
             models[tckr] = Single_Model(window=window)
             models[tckr].load_weights("{}/cpt.weights.h5".format(tckr))
             checkpoints[tckr] = ModelCheckpoint("{}/cpt.weights.h5".format(tckr), save_weights_only=True, verbose=0)
-            models[tckr].compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=learning_rate), metrics=[RootMeanSquaredError()])
+            models[tckr].compile(loss=MeanAbsolutePercentageError(), optimizer=Adam(learning_rate=learning_rate))
             pbar.update(1)
     pbar.close()
     return models, checkpoints
@@ -61,8 +58,8 @@ def Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs):
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
             print(tckr)
-            if models[tckr].evaluate(X[tckr][1],Y[tckr][1], verbose=0)[1]<0.5:
-                print( f'Model val_root_mean_squared_error sufficiently low: {models[tckr].evaluate(X[tckr][1],Y[tckr][1], verbose=0)[1]}')
+            if models[tckr].evaluate(X[tckr][1],Y[tckr][1], verbose=0)<=1:
+                print( f'Model MAPE sufficiently low: {models[tckr].evaluate(X[tckr][1],Y[tckr][1], verbose=0)}')
             else: 
                 early_stopping = EarlyStopping(monitor='val_loss', patience=int(epochs/3), restore_best_weights=True)
                 try:

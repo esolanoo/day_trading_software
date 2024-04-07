@@ -14,24 +14,16 @@ portfolio_dict, portfolio = get_data()
 X, Y = ML_data(portfolio, portfolio_dict, window)
 
 print('Populating models...')
-#models, checkpoints = Create_Models(portfolio_dict, window, learning_rate)
+# models, checkpoints = Create_Models(portfolio_dict, window, learning_rate)
 models, checkpoints = PopulateModels(portfolio_dict, window, learning_rate)
 
-val_errors = [True]
-while any(val_errors):
-    Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=100)
-    val_errors = []
-    for tckr in list(models.keys()):
-        val_errors.append(models[tckr].evaluate(X[tckr][1],Y[tckr][1], verbose=0)[1]>.5)
-
-"""
 train = ''
 while not(train=='y' or train=='n'):
     train = input('Train? [y/n]: ')
     
 if train=='y':
     print('Training models...')
-    Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=50)
+    Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=15)
  
 
 print('Making predictions...')
@@ -46,4 +38,3 @@ while tckr!='Q':
         Plot_Predictions(predictions_all, tckr)
         print()
         print(next_prediction[tckr])
-"""

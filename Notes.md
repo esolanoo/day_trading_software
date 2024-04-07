@@ -13,3 +13,5 @@ Predict adj close, close, high, low
 
 Vanguard no era predecible
 Las monedas no funcionan
+
+AMD CX BND BIV CRYPTO
