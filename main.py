@@ -29,6 +29,14 @@ if train=='y':
 print('Making predictions...')
 predictions_all, next_prediction, joint = Predictions(X, Y, models, window)
 
+n = 0
+for tckr in models.keys():
+    n += models[tckr].evaluate(X[tckr][2], Y[tckr][2], verbose=0)
+print(f'Average succes of predictions (1-MAPE): {100-n/len(models.keys())}')
+    
+meassurements = Measurements(joint)
+meassurements.to_csv('meassurements.csv')
+"""
 tckr = ''
 while tckr!='Q':
     tckr = input("Enter ticker to display or 'q' to end: ")
@@ -38,3 +46,4 @@ while tckr!='Q':
         Plot_Predictions(predictions_all, tckr)
         print()
         print(next_prediction[tckr])
+"""

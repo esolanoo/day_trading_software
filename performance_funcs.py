@@ -18,15 +18,17 @@ def calc_atr(df, period=14):
 def calc_rsi(df, period=14):
     """
     Calculate the Relative Strength Index (RSI)
-        Values above .7 indicate the asset is in overbought territory
-        Values below .3 indicate the asset is in oversold territory
     """
     delta = df['close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    up, down = delta.copy(), delta.copy()
+    up[up < 0] = 0
+    down[down > 0] = 0
 
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
+    average_gain = up.rolling(window=period).mean()
+    average_loss = abs(down.rolling(window=period).mean())
+
+    rs = average_gain / average_loss
+    rsi = 100*(100 - (100 / (1 + rs)))
 
     return rsi
 
@@ -78,6 +80,22 @@ def tckr_Sortino(df, rfr=0.00):
     sortino_ratio = (expected_return - rfr) / downside_deviation
     return sortino_ratio
 
+
+def add_trading_signals(df):
+    # Define your conditions for Buy, Hold and Sell
+    conditions = [
+        (df['adx'] > .25),  # Buy condition
+        (df['rsi'] > .01),  # Sell condition
+        (df['rsi'].between(.03, .05)) & (df['adx'] <= .25)  # Hold condition
+    ]
+
+    choices = ['Buy', 'Sell', 'Hold']
+
+    df['signal'] = np.select(conditions, choices, default='Hold')
+
+    return df
+
+
 def Measurements(joint):
     measurements = {}
     for tckr in list(joint.keys()):
@@ -87,8 +105,10 @@ def Measurements(joint):
         df['adx'] = calc_adx(df)
         df.dropna(axis=1, inplace=True)
         df['sortino'] = tckr_Sortino(df)
-        measurements[tckr] = df.iloc[-1, -3:]
+        measurements[tckr] = df.iloc[-1, -4:]
     measurements = pd.DataFrame(measurements)
-    measurements.set_index(pd.Index(['rsi', 'adx', 'sortino']), inplace=True)
+    measurements = measurements.transpose()
+    measurements.columns = ['atr', 'rsi', 'adx', 'sortino']
+    measurements = add_trading_signals(measurements)
     return measurements
-    
+
