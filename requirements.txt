@@ -10,3 +10,5 @@ keras
 tensorflow
 pyyaml 
 h5py
+alpaca-py
+requests

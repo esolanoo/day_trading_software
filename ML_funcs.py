@@ -64,7 +64,7 @@ def Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs):
                 early_stopping = EarlyStopping(monitor='val_loss', patience=int(epochs/3), restore_best_weights=True)
                 try:
                     models[tckr].fit(X[tckr][0], Y[tckr][0], validation_data=(X[tckr][1], Y[tckr][1]), epochs=epochs, 
-                                    callbacks=[checkpoints[tckr], early_stopping])
+                                    callbacks=[checkpoints[tckr], early_stopping], verbose=0)
                 except OSError as e:
                     if e.errno == 22:
                         print("\nUnable to synchronously create file. Passing...")

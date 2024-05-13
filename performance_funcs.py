@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def calc_atr(df, period=14):
+def calc_atr(df, period=5):
     """
     Calculate the Average True Range (ATR)
     """
@@ -15,7 +15,7 @@ def calc_atr(df, period=14):
     return atr
 
 
-def calc_rsi(df, period=14):
+def calc_rsi(df, period=5):
     """
     Calculate the Relative Strength Index (RSI)
     """
@@ -33,7 +33,7 @@ def calc_rsi(df, period=14):
     return rsi
 
 
-def calc_adx(df, period=14):
+def calc_adx(df, period=5):
     """
     Calculate the Average Directional Index (ADX)
         [0-25): Weak trend
@@ -82,11 +82,10 @@ def tckr_Sortino(df, rfr=0.00):
 
 
 def add_trading_signals(df):
-    # Define your conditions for Buy, Hold and Sell
     conditions = [
         (df['adx'] > .25),  # Buy condition
-        (df['rsi'] > .01),  # Sell condition
-        (df['rsi'].between(.03, .05)) & (df['adx'] <= .25)  # Hold condition
+        (df['rsi'] > .001),  # Sell condition
+        (df['rsi'].between(.003, .005)) & (df['adx'] <= .25)  # Hold condition
     ]
 
     choices = ['Buy', 'Sell', 'Hold']

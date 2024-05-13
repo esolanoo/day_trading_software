@@ -102,3 +102,13 @@ def ML_data(portfolio, portfolio_dict, window):
             X[tckr], Y[tckr] = preprocess(portfolio[eq][tckr], window=window)
     
     return X, Y
+
+def bid_price(symbol):
+    ticker = yf.Ticker(symbol)
+    try:
+        return ticker.info['currentPrice']
+    except:
+        try:
+            return ticker.info['bid']
+        except:
+            return ticker.info['previousClose']
