@@ -25,10 +25,7 @@ def placeOrder(symbol, vol, buy=True):
         side = side,
         time_in_force = TimeInForce.DAY
         )
-    order = client.submit_order(order_data= order_details)
-    trades = TradingStream(alpaca_config.API_KEY, alpaca_config.SECRET_KEY, paper=True)
-    trades.subscribe_trade_updates(trade_status)
-    client.close_all_positions()
+    _ = client.submit_order(order_data= order_details)
 
 
 def showPortfolio():
@@ -39,20 +36,29 @@ def showPortfolio():
     df['symbol'] = [x[0] for x in positions]
     df['volume'] = [x[1] for x in positions]
     df['value'] = [x[2] for x in positions]
-    client.close_all_positions()
     return df
 
 
 def AccountBalance():
     client = Connect()
     account = client.get_account()
-    client.close_all_positions()
-    return float(account.equity)  
+    return float(account.buying_power)  
 
 
 def SymbolPrice(symbol):
     client = Connect()
     position = client.get_open_position(symbol)
     price = position.current_price
-    client.close_all_positions()
     return float(price)
+
+
+def AccountPerformance(initial_investment):
+    client = Connect()
+    account = client.get_account()
+    print(f'Account proffit/loss: {float(account.equity)-initial_investment:.3f} USD')
+    
+def SellAll():
+    client = Connect()
+    assets = [asset for asset in client.get_all_positions()]
+    for asset in assets:
+        placeOrder(asset.symbol, asset.qty, False)

@@ -84,7 +84,7 @@ def tckr_Sortino(df, rfr=0.00):
 def add_trading_signals(df):
     conditions = [
         (df['adx'] > .25),  # Buy condition
-        (df['rsi'] > .001),  # Sell condition
+        (df['rsi'] > .0005),  # Sell condition
         (df['rsi'].between(.003, .005)) & (df['adx'] <= .25)  # Hold condition
     ]
 
