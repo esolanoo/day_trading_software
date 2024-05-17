@@ -42,7 +42,7 @@ def showPortfolio():
 def AccountBalance():
     client = Connect()
     account = client.get_account()
-    return float(account.buying_power)  
+    return float(account.non_marginable_buying_power)-25000
 
 
 def SymbolPrice(symbol):
@@ -55,7 +55,7 @@ def SymbolPrice(symbol):
 def AccountPerformance(initial_investment):
     client = Connect()
     account = client.get_account()
-    print(f'Account proffit/loss: {float(account.equity)-initial_investment:.3f} USD')
+    print(f'Account proffit/loss: {float(account.portfolio_value)-initial_investment-25000:.3f} USD')
     
 def SellAll():
     client = Connect()

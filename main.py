@@ -65,25 +65,32 @@ def Trade(train=False, evaluate=False, trade=True):
         for tckr in meassurements.index.tolist():
             tckr_alpaca = tckr.replace('-', '/')
             if tckr not in portfolio_dict['futures']:
-                if meassurements.loc[tckr, 'signal']=='Buy' and AccountBalance()>bid_price(tckr):
-                    placeOrder(tckr_alpaca, 1, True)
-                elif meassurements.loc[tckr, 'signal']=='Sell' and tckr in df['symbol']:
-                    placeOrder(tckr_alpaca, 1, False)
+                try:
+                    if meassurements.loc[tckr, 'signal']=='Buy' and AccountBalance()>bid_price(tckr)*1.03:
+                        placeOrder(tckr_alpaca, 1, True)
+                    elif meassurements.loc[tckr, 'signal']=='Sell' and tckr in df['symbol']:
+                        placeOrder(tckr_alpaca, 1, False)
+                except:
+                    pass 
     
 
 def main():
-    initial_investment = 6000
+    initial_investment = 10000
     trained_today = True
     while True: 
         os.system('cls')
         AccountPerformance(initial_investment)
         if not(nyc_stock_market_open()):
             if trained_today:
+                print('Market clossing')
+                print('Selling everything\n')
                 SellAll()
                 trained_today = False
             else:
+                print('Begining training after close')
                 Trade(train=True, evaluate=False, trade=False)
                 trained_today = True
+                print('Trained!')
                 while not(nyc_stock_market_open):
                     pass 
         else: 
