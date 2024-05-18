@@ -83,14 +83,14 @@ def tckr_Sortino(df, rfr=0.00):
 
 def add_trading_signals(df):
     conditions = [
-        (df['adx'] > .15),  # Buy condition
-        (df['rsi'] > .00001),  # Sell condition
-        (df['adx'] < .15) & (df['rsi'] < .00001)  # Hold condition
+        (df['diff'] == 'Positive'),  # Buy condition
+        (df['diff'] == 'Negative'),  # Sell condition
+        (df['diff'] == 'No Change')  # Hold condition
     ]
 
     choices = ['Buy', 'Sell', 'Hold']
 
-    df['signal'] = np.select(conditions, choices, default='Hold')
+    df['signal'] = np.select(conditions, choices)
 
     return df
 
@@ -104,10 +104,9 @@ def Measurements(joint):
         df['adx'] = calc_adx(df)
         df.dropna(axis=1, inplace=True)
         df['sortino'] = tckr_Sortino(df)
-        measurements[tckr] = df.iloc[-1, -4:]
+        measurements[tckr] = df.iloc[-1, -5:]
     measurements = pd.DataFrame(measurements)
     measurements = measurements.transpose()
-    measurements.columns = ['atr', 'rsi', 'adx', 'sortino']
     measurements = add_trading_signals(measurements)
     return measurements
 

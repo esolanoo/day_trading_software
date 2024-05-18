@@ -102,6 +102,7 @@ def Predictions(X, Y, models, window):
         joint[tckr].columns = ['high', 'low', 'close', 'adj close']
         joint[tckr]['returns'] = joint[tckr]['adj close'].pct_change()
         joint[tckr] = joint[tckr].dropna()
+        joint[tckr]['diff'] = joint[tckr]['returns'].apply(lambda x: 'Positive' if x > 0 else ('Negative' if x < 0 else 'No Change'))
         pbar.update(1)
     pbar.close()
     return preds_all, pred_next, joint

@@ -70,6 +70,8 @@ def Trade(train=False, evaluate=False, trade=True):
                         placeOrder(tckr_alpaca, 1, True)
                     elif meassurements.loc[tckr, 'signal']=='Sell' and tckr in df['symbol']:
                         placeOrder(tckr_alpaca, 1, False)
+                    else:
+                        pass
                 except:
                     pass 
     
