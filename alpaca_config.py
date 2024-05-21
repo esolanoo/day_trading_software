@@ -1,5 +1,5 @@
-API_KEY = 'PKGTS4H39P0DPBYOP8C7'
-SECRET_KEY = 'Xr68gByZQ8GTYnEqQBBQbDx7w1DJ467SufirOTbh'
+API_KEY = 'PK7JBPCLA3WOPI2FS5L1'
+SECRET_KEY = 'rlMG8bPsVWMCcuAWOuqG7PnMeenM4M0cBNqs8ht6'
 
 # This is for my paper trading account, 
 # Will change them at some point. Get your own if necessary

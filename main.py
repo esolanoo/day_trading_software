@@ -6,6 +6,7 @@ from alpaca_funcs import *
 
 from datetime import datetime
 from datetime import time as t
+import random
 import time
 import pytz
 import os
@@ -25,7 +26,7 @@ def nyc_stock_market_open():
     return market_open <= current_time < market_close
 
 def Trade(train=False, evaluate=False, trade=True, epochs=5):
-    window = 3
+    window = 12
     learning_rate = 0.00005
     print('Getting the data...')
     portfolio_dict, portfolio = get_data()
@@ -62,46 +63,44 @@ def Trade(train=False, evaluate=False, trade=True, epochs=5):
     if trade:
         meassurements = Measurements(joint)
         df = showPortfolio()
-        display(df)
+        aux = meassurements.reset_index()
+        aux['index'] = aux['index'].apply(lambda x: x.replace('-', ''))
+        aux = df.set_index('symbol').join(aux.set_index('index'))
         for tckr in meassurements.index.tolist():
-            tckr_alpaca = tckr.replace('-', '/')
-            tckr_order = tckr_alpaca.replace('/', '')
             if tckr not in portfolio_dict['futures']:
+                tckr_order = tckr.replace('-', '')
                 try:
-                    qty = np.random.choice(int(np.floor(expensive/(bid_price(tckr))))-1)+1
-                    price = qty*bid_price(tckr)*1.03
+                    if tckr != expensive_tckr:
+                        qty = random.randint(1, expensive//bid_price(tckr))+1
+                        price = qty*bid_price(tckr)*1.03
+                    else:
+                        qty = 1
+                        price = expensive
+                    p=''
                     if meassurements.loc[tckr, 'signal']=='Buy' and AccountBalance()>price:
                         print(f'Buy {qty} value of {tckr_order} for {bid_price(tckr)} USD')
+                        p = 'buying'
                         placeOrder(tckr_order, qty, True)
-                    elif meassurements.loc[tckr, 'signal']=='Sell' and tckr_alpaca in df['symbol']:
-                        qty = df.loc[df['symbol'] == tckr_alpaca, 'volume'].values[0]
-                        print(f"Sell ({qty}) values of {tckr} for {qty*bid_price(tckr)} USD")
-                        placeOrder(tckr_order, qty, False)
+                    elif tckr_order in aux.index and aux.loc[tckr_order, 'signal']=='Sell':
+                        p = 'selling'
+                        crypto = tckr in portfolio_dict['crypto']
+                        qty = float(aux.loc[tckr_order, 'volume'])
+                        val = float(aux.loc[tckr_order, 'value'])
+                        if qty>0:
+                            print(f"Sell {qty} values of {tckr} for {qty*val} USD")
+                            placeOrder(tckr_order, qty, False, crypto)
+                    else:
+                        pass
                 except:
-                    print(f'error with {tckr_order}') 
+                    print(f'error {p} {tckr_order}') 
     
 
 def main():
     initial_investment = 10000
-    trained_today = True
-    Trade(train=True, evaluate=True, trade=False, epochs=100)
     while True: 
         os.system('cls')
         AccountPerformance(initial_investment)
-        if not(nyc_stock_market_open()):
-            if trained_today:
-                print('Market clossing')
-                print('Selling everything\n')
-                SellAll()
-                trained_today = False
-            else:
-                print('Begining training after close')
-                Trade(train=True, evaluate=False, trade=False)
-                trained_today = True
-                print('Trained!\n')
-                while not(nyc_stock_market_open):
-                    pass 
-        else: 
+        if nyc_stock_market_open():
             start_time = time.time()
             Trade()
             end_time = time.time()
@@ -110,6 +109,17 @@ def main():
                 wait_time = 240 - elapsed_time
                 print(f'Waiting for next market candles ({int(wait_time)} seconds)...')
                 time.sleep(wait_time)
+             
+        else: 
+            print('Market clossing')
+            print('Selling everything\n')
+            SellAll()
+            print('Begining training after close')
+            Trade(train=True, evaluate=False, trade=False)
+            print('Trained!')
+            print('Waiting for next market open hour\n')
+            while not(nyc_stock_market_open):
+                pass
                 
 
 if __name__ == "__main__":
