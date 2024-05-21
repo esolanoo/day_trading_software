@@ -23,20 +23,12 @@ def Single_Model(window):
         InputLayer((window, 8)),     # Modify if window changed
         LSTM(64, activation='tanh', return_sequences=True),
         LSTM(64),
-        Dense(8, 'relu'),
+        Dense(32, 'relu'),
+        Dense(32, 'linear'),
+        Dense(4, 'relu'),
         Dense(4, 'linear')
     ])
     return model
-
-
-def Create_Models(portfolio_dict, window, learning_rate):
-    models, checkpoints = {}, {}
-    for eq in portfolio_dict:
-        for tckr in portfolio_dict[eq]:               
-            models[tckr] = Single_Model(window=window)
-            checkpoints[tckr] = ModelCheckpoint("{}/cpt.weights.h5".format(tckr), save_weights_only=True, verbose=0)
-            models[tckr].compile(loss=MeanAbsolutePercentageError(), optimizer=Adam(learning_rate=learning_rate))
-    return models, checkpoints
 
 
 def PopulateModels(portfolio_dict, window, learning_rate):
@@ -45,7 +37,8 @@ def PopulateModels(portfolio_dict, window, learning_rate):
     for eq in portfolio_dict:
         for tckr in portfolio_dict[eq]:
             models[tckr] = Single_Model(window=window)
-            models[tckr].load_weights("{}/cpt.weights.h5".format(tckr))
+            if os.path.exists("{}/cpt.weights.h5".format(tckr)):
+                models[tckr].load_weights("{}/cpt.weights.h5".format(tckr))
             checkpoints[tckr] = ModelCheckpoint("{}/cpt.weights.h5".format(tckr), save_weights_only=True, verbose=0)
             models[tckr].compile(loss=MeanAbsolutePercentageError(), optimizer=Adam(learning_rate=learning_rate))
             pbar.update(1)
@@ -64,7 +57,7 @@ def Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs):
                 early_stopping = EarlyStopping(monitor='val_loss', patience=int(epochs/3), restore_best_weights=True)
                 try:
                     models[tckr].fit(X[tckr][0], Y[tckr][0], validation_data=(X[tckr][1], Y[tckr][1]), epochs=epochs, 
-                                    callbacks=[checkpoints[tckr], early_stopping], verbose=0)
+                                    callbacks=[checkpoints[tckr], early_stopping])
                 except OSError as e:
                     if e.errno == 22:
                         print("\nUnable to synchronously create file. Passing...")

@@ -19,11 +19,12 @@ def Connect():
 def placeOrder(symbol, vol, buy=True):
     client = Connect()
     side = OrderSide.BUY if buy else OrderSide.SELL
+    time_force = TimeInForce.GTC if buy else TimeInForce.DAY
     order_details = MarketOrderRequest(
         symbol= symbol,
         qty = vol,
         side = side,
-        time_in_force = TimeInForce.DAY
+        time_in_force = time_force
         )
     _ = client.submit_order(order_data= order_details)
 
@@ -62,3 +63,5 @@ def SellAll():
     assets = [asset for asset in client.get_all_positions()]
     for asset in assets:
         placeOrder(asset.symbol, asset.qty, False)
+        
+SellAll()

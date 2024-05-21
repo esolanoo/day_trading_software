@@ -10,6 +10,7 @@ import time
 import pytz
 import os
 import warnings
+from IPython.display import display
 
 
 
@@ -23,21 +24,20 @@ def nyc_stock_market_open():
 
     return market_open <= current_time < market_close
 
-def Trade(train=False, evaluate=False, trade=True):
-    window = 20
+def Trade(train=False, evaluate=False, trade=True, epochs=5):
+    window = 3
     learning_rate = 0.00005
     print('Getting the data...')
     portfolio_dict, portfolio = get_data()
-
+    expensive, expensive_tckr = most_expensive(portfolio, portfolio_dict)
     X, Y = ML_data(portfolio, portfolio_dict, window)
 
     print('Populating models...')
-    # models, checkpoints = Create_Models(portfolio_dict, window, learning_rate)
     models, checkpoints = PopulateModels(portfolio_dict, window, learning_rate)
 
     if train:
         print('Training models...')
-        Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=5)
+        Fit_Models(portfolio_dict, X, Y, models, checkpoints, epochs=epochs)
         
         
     print('Making predictions...')
@@ -62,23 +62,29 @@ def Trade(train=False, evaluate=False, trade=True):
     if trade:
         meassurements = Measurements(joint)
         df = showPortfolio()
+        display(df)
         for tckr in meassurements.index.tolist():
             tckr_alpaca = tckr.replace('-', '/')
+            tckr_order = tckr_alpaca.replace('/', '')
             if tckr not in portfolio_dict['futures']:
                 try:
-                    if meassurements.loc[tckr, 'signal']=='Buy' and AccountBalance()>bid_price(tckr)*1.03:
-                        placeOrder(tckr_alpaca, 1, True)
-                    elif meassurements.loc[tckr, 'signal']=='Sell' and tckr in df['symbol']:
-                        placeOrder(tckr_alpaca, 1, False)
-                    else:
-                        pass
+                    qty = np.random.choice(int(np.floor(expensive/(bid_price(tckr))))-1)+1
+                    price = qty*bid_price(tckr)*1.03
+                    if meassurements.loc[tckr, 'signal']=='Buy' and AccountBalance()>price:
+                        print(f'Buy {qty} value of {tckr_order} for {bid_price(tckr)} USD')
+                        placeOrder(tckr_order, qty, True)
+                    elif meassurements.loc[tckr, 'signal']=='Sell' and tckr_alpaca in df['symbol']:
+                        qty = df.loc[df['symbol'] == tckr_alpaca, 'volume'].values[0]
+                        print(f"Sell ({qty}) values of {tckr} for {qty*bid_price(tckr)} USD")
+                        placeOrder(tckr_order, qty, False)
                 except:
-                    pass 
+                    print(f'error with {tckr_order}') 
     
 
 def main():
     initial_investment = 10000
     trained_today = True
+    Trade(train=True, evaluate=True, trade=False, epochs=100)
     while True: 
         os.system('cls')
         AccountPerformance(initial_investment)
@@ -92,7 +98,7 @@ def main():
                 print('Begining training after close')
                 Trade(train=True, evaluate=False, trade=False)
                 trained_today = True
-                print('Trained!')
+                print('Trained!\n')
                 while not(nyc_stock_market_open):
                     pass 
         else: 
@@ -102,7 +108,7 @@ def main():
             elapsed_time = end_time - start_time
             if elapsed_time < 240:  # 4 minutes
                 wait_time = 240 - elapsed_time
-                print(f'Waiting for next market candles ({wait_time} seconds)...')
+                print(f'Waiting for next market candles ({int(wait_time)} seconds)...')
                 time.sleep(wait_time)
                 
 

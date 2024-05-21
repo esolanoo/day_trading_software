@@ -89,7 +89,7 @@ def preprocess(DF, window):
     X_test =  X[idx:, :, :]
     Y_test =  Y[idx:, :]
 
-    X_pred =  np.array([x for x in df[len(df)-window:]])
+    X_pred =  X[-1, :, :]
     
     return [X_train, X_test, X, X_pred], [Y_train, Y_test, Y]
 
@@ -112,3 +112,15 @@ def bid_price(symbol):
             return ticker.info['bid']
         except:
             return ticker.info['previousClose']
+
+
+def most_expensive(portfolio, portfolio_dict):
+    expensive = -np.inf
+    exp_tckr = ''
+    for eq in portfolio_dict:
+        for tckr in portfolio_dict[eq]:
+            aux = portfolio[eq][tckr]['Adj Close'].to_list()
+            if aux[-1]>expensive:
+                expensive = aux[-1]
+                exp_tckr = tckr
+    return expensive, exp_tckr

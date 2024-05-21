@@ -1,4 +1,4 @@
-stocks = ['ZI', 'PFE', 'NU', 'F', 'GOOGL', 'Z', 'MRNA', 'AAPL', 'NKE', 'T', 'AAL', 'BAC']
-etfs = ['SPY', 'TQQQ', 'QQQ', 'IWF', 'XLK', 'IEF', 'IOO', 'VIOO', 'SPTM', 'ICLN']
-crypto = ['USDT-USD', 'USDC-USD']
-futures = ['ZB=F', 'HG=F', 'ZC=F', 'ZM=F', 'GC=F', 'SB=F']
+stocks = ['ZI', 'PFE', 'NU', 'F', 'GOOGL', 'Z', 'MRNA', 'AAPL', 'NKE', 'T', 'AAL', 'BAC', 'GME', 'INTC', 'PBR', 'JPM']
+etfs = ['SPY', 'TQQQ', 'IWF', 'XLK', 'IEF', 'IOO', 'VIOO', 'SPTM', 'ICLN', 'BLOK']
+crypto = ['USDT-USD', 'USDC-USD', 'XTZ-USD']
+futures = ['ZB=F', 'HG=F', 'ZC=F', 'ZM=F', 'SB=F']
